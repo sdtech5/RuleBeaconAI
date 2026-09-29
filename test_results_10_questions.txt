@@ -1,0 +1,112 @@
+RULEBEACONAI — 10 QUESTION BACKEND TEST RESULTS
+==============================================================================
+
+1. QUESTION
+What was NVIDIA's total revenue in fiscal year 2024?
+
+ANSWER
+NVIDIA reported total revenue of **$60.9 billion** for fiscal year 2024 (the filing lists this as “Revenue for fiscal year 2024”).
+
+STATUS: OK
+
+2. QUESTION
+What was Meta Platforms' total revenue in fiscal year 2020?
+
+ANSWER
+Meta Platforms reported total revenue of **$85,965 million** for fiscal year 2020 (shown as “Total revenue” in the filing).
+
+STATUS: OK
+
+3. QUESTION
+Compare NVIDIA's revenue growth rate in FY2022 vs FY2023 vs FY2024.
+
+ANSWER
+- FY 2022: Revenue was $26.91 billion, **up 61%** from the prior year.  
+- FY 2023: The filing provides total revenue of $26.974 billion but does **not state a growth‑rate percentage** for the year.  
+- FY 2024: Revenue was $60.9 billion, **up 126%** from the prior year.  
+
+Thus, the disclosed growth rates are 61% for FY 2022 and 126% for FY 2024; the FY 2023 growth rate is not provided in the available filing.
+
+STATUS: OK
+
+4. QUESTION
+How did Microsoft's revenue grow each year from FY2021 to FY2024?
+
+ANSWER
+- FY 2021 revenue: **$69,916 million** (as shown in the 2021 filing).  
+- FY 2023 revenue: **$219,790 million** (2024 filing, “Year Ended June 30 2023”).  
+- FY 2024 revenue: **$247,442 million** (2024 filing, “Year Ended June 30 2024”).  
+
+**Revenue growth**  
+- FY 2023 → FY 2024: increase of **$27,652 million**, which is about **12.6 %** higher than FY 2023.  
+
+**Missing data**  
+- The filings provided do not include a revenue figure for FY 2022, so growth for FY 2021 → FY 2022 and FY 2022 → FY 2023 cannot be calculated from the available information.
+
+STATUS: OK
+
+5. QUESTION
+What were Apple's iPhone, Mac, iPad, Wearables, and Services revenues in FY2023?
+
+ANSWER
+- iPhone: $200,583 million (net sales)  
+- Mac: $29,357 million (net sales)  
+- iPad: $28,300 million (net sales)  
+- Wearables, Home and Accessories: $39,845 million (net sales)  
+- Services: $85,200 million (net sales)  
+
+These figures are taken from Apple’s FY 2023 net‑sales breakdown in the 2023 Form 10‑K.
+
+STATUS: OK
+
+6. QUESTION
+What was NVIDIA's data center revenue in FY2024, and what share of total revenue did it represent?
+
+ANSWER
+- Data Center revenue FY 2024: **$47.5 billion** (as reported in the 10‑K).  
+- Total FY 2024 revenue: **$60.9 billion**.  
+- Share of total revenue: **≈ 78 %** (47.5 ÷ 60.9 ≈ 0.78).
+
+STATUS: OK
+
+7. QUESTION
+What was Apple's operating margin in FY2023? (Operating income / Total net sales)
+
+ANSWER
+Apple’s FY 2023 operating margin (Operating income ÷ Total net sales) was:
+
+- Operating income (total operating income): **$114,301 million**  
+- Total net sales: **$383,285 million**  
+
+Operating margin = 114,301 / 383,285 ≈ **0.298 or 29.8 %**.
+
+STATUS: OK
+
+8. QUESTION
+What was Tesla's operating income in FY2022, and what was its operating margin?
+
+ANSWER
+- Operating income (income from operations) FY 2022: **$13,656 million**  
+- Operating margin: **Not disclosed in the provided filing excerpts** (revenue figures needed to calculate the margin are not included).
+
+STATUS: OK
+
+9. QUESTION
+What was NVIDIA's fiscal year 2024 end date?
+
+ANSWER
+NVIDIA’s fiscal year 2024 ended on January 28, 2024.
+
+STATUS: OK
+
+10. QUESTION
+What was Archer Daniels Midland's net earnings attributable to ADM in FY2023?
+
+ANSWER
+The filing does not provide a figure for Archer Daniels Midland’s net earnings attributable to ADM (controlling interest) for fiscal year 2023.
+
+STATUS: OK
+
+==============================================================================
+Total questions: 10
+Total runtime: 171.3s

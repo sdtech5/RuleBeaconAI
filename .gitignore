@@ -1,0 +1,24 @@
+# Virtual environment
+.venv/
+
+# Environment variables / secrets
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Chroma / local vector database
+chroma_db/
+
+# Hugging Face cache
+.cache/
+
+# Local agent/editor rules
+.clinerules
+
+# Local data
+data/raw/
+
+# IDE
+.vscode/
