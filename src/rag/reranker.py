@@ -2,6 +2,10 @@ import re
 
 from sentence_transformers import CrossEncoder
 
+from src.rag.calculations import (
+    METRIC_CONCEPT_TERMS,
+    detect_metric_concepts,
+)
 from src.rag.schemas import RetrievalResult
 
 
@@ -27,74 +31,9 @@ class DocumentReranker:
         phrasings can match the same underlying financial metric.
         """
 
-        normalized = DocumentReranker._normalize(query)
-
-        metric_groups = {
-            "net_income": [
-                "net earnings",
-                "net income",
-                "net profit",
-            ],
-            "revenue": [
-                "total revenues",
-                "total revenue",
-                "revenues",
-                "revenue",
-                "net sales",
-                "net revenues",
-                "net revenue",
-            ],
-            "operating_income": [
-                "operating income",
-                "operating profit",
-                "income from operations",
-                "total income from operations",
-            ],
-            "gross_profit": [
-                "gross profit",
-            ],
-            "research_development": [
-                "research and development",
-                "r&d",
-            ],
-            "eps": [
-                "earnings per share",
-                "diluted earnings per share",
-                "basic earnings per share",
-            ],
-            "cash": [
-                "cash and cash equivalents",
-            ],
-            "long_term_debt": [
-                "long-term debt",
-            ],
-            "short_term_debt": [
-                "short-term debt",
-            ],
-            "operating_cash_flow": [
-                "operating cash flow",
-            ],
-            "assets": [
-                "total assets",
-            ],
-            "liabilities": [
-                "total liabilities",
-            ],
-        }
-
-        matched_concepts = []
-
-        for concept, terms in metric_groups.items():
-            if any(
-                re.search(
-                    rf"\b{re.escape(term)}\b",
-                    normalized,
-                )
-                for term in terms
-            ):
-                matched_concepts.append(concept)
-
-        return matched_concepts
+        # Concept terminology is centralized in src.rag.calculations so the
+        # reranker and the calculation/retrieval layers stay in sync.
+        return detect_metric_concepts(query)
 
     @staticmethod
     def _concept_terms(concept: str) -> list[str]:
@@ -102,60 +41,7 @@ class DocumentReranker:
         Return terminology variants for a normalized financial concept.
         """
 
-        concept_terms = {
-            "net_income": [
-                "net earnings",
-                "net income",
-                "net profit",
-            ],
-            "revenue": [
-                "total revenues",
-                "total revenue",
-                "revenues",
-                "revenue",
-                "net sales",
-                "net revenues",
-                "net revenue",
-            ],
-            "operating_income": [
-                "operating income",
-                "operating profit",
-                "income from operations",
-                "total income from operations",
-            ],
-            "gross_profit": [
-                "gross profit",
-            ],
-            "research_development": [
-                "research and development",
-                "r&d",
-            ],
-            "eps": [
-                "earnings per share",
-                "diluted earnings per share",
-                "basic earnings per share",
-            ],
-            "cash": [
-                "cash and cash equivalents",
-            ],
-            "long_term_debt": [
-                "long-term debt",
-            ],
-            "short_term_debt": [
-                "short-term debt",
-            ],
-            "operating_cash_flow": [
-                "operating cash flow",
-            ],
-            "assets": [
-                "total assets",
-            ],
-            "liabilities": [
-                "total liabilities",
-            ],
-        }
-
-        return concept_terms.get(concept, [])
+        return METRIC_CONCEPT_TERMS.get(concept, [])
 
     @staticmethod
     def _exact_metric_score(

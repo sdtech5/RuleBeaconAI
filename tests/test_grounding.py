@@ -23,6 +23,22 @@ TEST_CASES = [
         "year": 2024,
         "question": "What was NVIDIA's revenue in fiscal year 2024?",
     },
+    {
+        "company": "TSLA",
+        "year": 2022,
+        "question": (
+            "What was Tesla's operating income in FY2022, "
+            "and what was its operating margin?"
+        ),
+    },
+    {
+        "company": "NVDA",
+        "years": [2021, 2022, 2023, 2024],
+        "question": (
+            "Compare NVIDIA's revenue growth rate in "
+            "FY2022 vs FY2023 vs FY2024."
+        ),
+    },
 ]
 
 
@@ -47,16 +63,23 @@ def build_service():
     )
 
 
-def source_matches(source, company, year):
+def source_matches(source, company, years):
+    """
+    A source is grounded when it belongs to the expected company and to
+    one of the requested fiscal years. Multi-year questions may legally
+    cite more than one filing year.
+    """
 
     source_path = source["source"].replace("/", "\\").upper()
 
     expected_company = f"\\{company}\\"
-    expected_file = f"10-K_{year}.MD"
 
-    return (
-        expected_company in source_path
-        and expected_file in source_path
+    if expected_company not in source_path:
+        return False
+
+    return any(
+        f"10-K_{year}.MD" in source_path
+        for year in years
     )
 
 
@@ -97,6 +120,8 @@ def main():
                 f"{source['score']:.4f}"
             )
 
+        expected_years = test.get("years") or [test["year"]]
+
         answer_pass = bool(answer.strip())
 
         source_pass = (
@@ -105,7 +130,7 @@ def main():
                 source_matches(
                     source,
                     test["company"],
-                    test["year"],
+                    expected_years,
                 )
                 for source in sources
             )

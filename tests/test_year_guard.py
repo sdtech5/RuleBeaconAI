@@ -43,6 +43,10 @@ QUESTIONS = [
         "What was NVIDIA's revenue in FY2026 "
         "according to the provided documents?"
     ),
+    (
+        "What was Apple's total revenue from FY2019 to FY2021 "
+        "according to the provided documents?"
+    ),
 ]
 
 

@@ -28,6 +28,47 @@ QUESTIONS = [
         "question": "What was NVIDIA's revenue in fiscal year 2024?",
         "expected_values": [60.9, 60922, 60.922],
     },
+    {
+        "company": "TSLA",
+        "year": 2022,
+        "question": (
+            "What was Tesla's operating income in FY2022, "
+            "and what was its operating margin?"
+        ),
+        "expected_values": [
+            13656,
+            13.656,
+            13.7,
+            81462,
+            81.462,
+            81.46,
+            81.5,
+            16.8,
+            16.76,
+            16.7,
+        ],
+    },
+    {
+        "company": "NVDA",
+        "year": 2024,
+        "question": (
+            "Compare NVIDIA's revenue growth rate in "
+            "FY2022 vs FY2023 vs FY2024."
+        ),
+        "expected_values": [
+            26974,
+            26.974,
+            26.97,
+            60922,
+            60.922,
+            60.9,
+            125.8,
+            125.9,
+            126,
+            61.4,
+            61,
+        ],
+    },
 ]
 
 

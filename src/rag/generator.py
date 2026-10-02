@@ -16,6 +16,7 @@ def create_llm():
     )
 
 
+
 def clean_answer(answer: str) -> str:
     """
     Remove accidental Markdown backticks that can make
@@ -33,10 +34,16 @@ def generate_answer(
     llm,
     question,
     retrieved_chunks,
+    calculation_hint=None,
 ):
     """
     Generate an answer using only the retrieved filing
     evidence.
+
+    When the question asks for a derived metric (growth rate, margin,
+    share of total, ...), an optional ``calculation_hint`` is supplied so
+    the model knows which formula to apply and that it must compute the
+    result deterministically from the retrieved inputs.
     """
 
     context_blocks = []
@@ -51,6 +58,22 @@ def generate_answer(
 
     context = "\n\n".join(context_blocks)
 
+    if calculation_hint:
+        calculation_section = (
+            "\nCALCULATION RULES (this question asks for a derived metric):\n"
+            f"- {calculation_hint}\n"
+            "- Compute the value from figures that appear in the filing "
+            "context above. Do NOT report the metric as unavailable merely "
+            "because the filing does not state the percentage explicitly.\n"
+            "- Clearly show the input figures you used and the computed "
+            "result.\n"
+            "- Use the correct fiscal-year figure for each input; never "
+            "reuse one year's figure for a different year.\n"
+            "- If a required input does not appear anywhere in the context, "
+            "state that the input is not available and do not estimate it.\n"
+        )
+    else:
+        calculation_section = ""
 
     prompt = f"""
 You are a financial research assistant.
@@ -87,7 +110,7 @@ IMPORTANT RULES:
 10. Do NOT use Markdown tables.
 11. Do NOT use backticks or code formatting.
 12. Do not invent or estimate a number.
-
+{calculation_section}
 Filing context:
 {context}
 
@@ -101,5 +124,13 @@ Answer:
     response = llm.invoke(prompt)
 
     answer = response.content
+
+    if isinstance(answer, list):
+        answer = "".join(
+            block.get("text", 
+                      "")
+            for block in answer
+            if isinstance(block, dict)
+        )
 
     return clean_answer(answer)
