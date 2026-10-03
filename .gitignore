@@ -22,3 +22,5 @@ data/raw/
 
 # IDE
 .vscode/
+# Personal architecture notes
+V2_ARCHITECTURE.md

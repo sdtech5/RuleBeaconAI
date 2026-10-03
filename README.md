@@ -1,94 +1,131 @@
 # RuleBeaconAI — SEC Filing Regulatory & Financial Document Intelligence
 
-> A grounded RAG research assistant over corporate 10-K filings using hybrid dense/sparse retrieval, Qdrant RRF, cross-encoder reranking, metric-aware retrieval logic, deterministic document/chunk IDs, incremental ingestion, FastAPI, and a compact Streamlit research interface.
+> A grounded RAG research assistant for querying corporate SEC 10-K filings using hybrid retrieval, Qdrant, cross-encoder reranking, deterministic guardrails, and grounded LLM generation.
 
 ---
 
 ## 1. Overview
 
-**RuleBeaconAI** is a specialized financial-document intelligence platform built to accurately query complex regulatory filings (SEC 10-Ks). It addresses common RAG failure modes in financial contexts—such as metric ambiguity, fiscal-year hallucination, and imprecise chunk matching—by enforcing deterministic filtering, reciprocal rank fusion (RRF), domain-specific cross-encoder reranking, and strictly grounded LLM generation.
+**RuleBeaconAI** is a financial-document intelligence platform designed to answer questions over complex SEC 10-K filings.
 
-### Target Corpus State
-- **55 Corporate 10-K Filings** across 11 enterprises: `AAPL`, `ADM`, `AMZN`, `GOOGL`, `JPM`, `META`, `MSFT`, `NFLX`, `NVDA`, `TSLA`, `WMT`
-- **Coverage:** Fiscal Years FY2020 – FY2024
-- **Manifest & Vector Count:** 39,778 chunks / points
-- **Dense Embeddings:** 384 dimensions (`BAAI/bge-small-en-v1.5`)
-- **Sparse Retrieval:** BM25 (`Qdrant/bm25`)
-- **Fusion:** Qdrant Native Reciprocal Rank Fusion (RRF)
-- **Reranker:** `BAAI/bge-reranker-base` with metric-aware financial term boosting
-- **LLM Generator:** Groq (`openai/gpt-oss-20b`) with temperature `0`
+The system is designed around common challenges in financial RAG, including:
+
+- Metric ambiguity
+- Fiscal-year confusion
+- Irrelevant retrieval
+- Precise financial-value extraction
+- Grounded answer generation
+
+### Current Corpus
+
+- **55 SEC 10-K filings**
+- **11 companies:** `AAPL`, `ADM`, `AMZN`, `GOOGL`, `JPM`, `META`, `MSFT`, `NFLX`, `NVDA`, `TSLA`, `WMT`
+- **Fiscal years:** FY2020–FY2024
+- **~39,778 indexed chunks / points**
+- **Dense embeddings:** `BAAI/bge-small-en-v1.5` — 384 dimensions
+- **Sparse retrieval:** Qdrant BM25
+- **Fusion:** Qdrant Reciprocal Rank Fusion (RRF)
+- **Reranker:** `BAAI/bge-reranker-base`
+- **LLM:** Groq `openai/gpt-oss-120b`
 
 ---
 
-## 2. Architecture & Pipeline
+## 2. Architecture
 
 ```mermaid
 flowchart TD
-    subgraph Ingestion ["Ingestion & Indexing"]
-        A[SEC 10-K Corpus\n55 Filings / 11 Tickers] --> B[Structure-Aware Parser & Chunker]
-        B --> C[Deterministic Document & Chunk IDs]
-        C --> D[Dense Embeddings 384d]
-        C --> E[Sparse BM25 Vectors]
-        D --> F[(Qdrant Vector Store\nsec_filings)]
-        E --> F
-    end
 
-    subgraph QueryExecution ["Query Execution & Retrieval"]
-        Q[User Query / Follow-up] --> G[Company & Year Guardrails]
-        G -->|Unsupported Year| H[Deterministic Rejection]
-        G -->|Supported Year| I[Structured Metadata Filter]
-        I --> J[Hybrid Dense + Sparse Search]
-        F --> J
-        J --> K[Qdrant RRF Fusion\n30 Candidates]
-        K --> L[Cross-Encoder Reranker\n+ Metric-Aware Boost]
-        L --> M[Top-5 Grounded Chunks]
-    end
+    A[SEC 10-K Filings] --> B[Parser & Chunker]
+    B --> C[Deterministic Document / Chunk IDs]
+    C --> D[Dense Embeddings]
+    C --> E[Sparse BM25]
+    D --> F[(Qdrant)]
+    E --> F
 
-    subgraph GenerationInterface ["Grounded Synthesis & UI"]
-        M --> N[Groq LLM Generation\nStrict Grounding]
-        N --> O[FastAPI Service\nPOST /ask]
-        O --> P[Streamlit Research UI\nV8 Dark Theme]
-    end
+    G[User Question] --> H[Company & Year Guardrails]
+    H -->|Unsupported Year| I[Deterministic Rejection]
+    H -->|Valid Request| J[Metadata Filtering]
+
+    J --> K[Hybrid Retrieval]
+    F --> K
+    K --> L[Qdrant RRF]
+    L --> M[Cross-Encoder Reranking]
+    M --> N[Top Relevant Chunks]
+
+    N --> O[Groq LLM]
+    O --> P[FastAPI]
+    P --> Q[Streamlit UI]
 ```
 
 ---
 
-## 3. Validated Evaluation Results
+## 3. Key Features
 
-The system is rigorously benchmarked across 4 test suites:
+### Hybrid Retrieval
 
-| Evaluation Suite | Metric / Scope | Result | Status |
-| :--- | :--- | :---: | :---: |
-| **Retrieval Regression** | 11 Companies (FY2023–2024) | **11/11 (100.0%)** | Pass |
-| **Filing Hit@5** | Top-5 contains target 10-K filing | **11/11 (100.0%)** | Pass |
-| **Metric Hit@5** | Top-5 contains target metric term | **11/11 (100.0%)** | Pass |
-| **Generation Benchmark** | Exact financial value accuracy | **3/3 (100.0%)** | Pass |
-| **Grounding Validation** | 100% citation relevance to target filing | **3/3 (100.0%)** | Pass |
-| **Out-of-Corpus Year Guard** | Rejects unsupported years without calling vector store/LLM | **3/3 (100.0%)** | Pass |
+Combines:
 
-### Validated Reference Values
-- **Apple (AAPL) FY2023 Net Sales:** `$383.3 billion`
-- **Archer Daniels Midland (ADM) FY2024 Net Earnings:** `$2,036 million`
-- **NVIDIA (NVDA) FY2024 Revenue:** `$60.9 billion`
+- Dense semantic search
+- Sparse BM25 keyword search
+- Qdrant Reciprocal Rank Fusion
+
+This allows the system to handle both conceptual queries and exact financial terminology.
+
+### Cross-Encoder Reranking
+
+Retrieved candidates are reranked using:
+
+`BAAI/bge-reranker-base`
+
+The reranking stage also applies metric-aware logic for important financial concepts such as:
+
+- Revenue / Net Sales
+- Operating Income
+- Gross Profit
+- EPS
+- R&D
+- Total Assets
+
+### Deterministic Year Guard
+
+The system detects explicit fiscal-year requests and rejects requests outside the supported corpus before unnecessary retrieval or LLM processing occurs.
+
+### Grounded Generation
+
+The LLM receives retrieved filing evidence and is instructed to answer using that evidence rather than relying on unsupported information.
+
+### Multi-Turn Questions
+
+The Streamlit interface maintains relevant company and fiscal-year context for follow-up questions.
+
+For example:
+
+> "What were Apple's net sales in fiscal year 2023?"
+
+followed by:
+
+> "How did that compare with the previous year?"
 
 ---
 
-## 4. Key Engineering Features
+## 4. Validation
 
-1. **Native Qdrant RRF Adapter (`src/rag/vectorstore.py`):**
-   Fuses dense vector semantic similarity with BM25 sparse lexical matching directly within Qdrant, guaranteeing both thematic semantic relevance and precise financial keyword recall.
+The project includes automated validation for retrieval, generation, grounding, and year handling.
 
-2. **Metric-Aware Cross-Encoder Reranking (`src/rag/reranker.py`):**
-   Applies `BAAI/bge-reranker-base` over candidate pools, augmented with deterministic scoring boosts for core financial concepts (e.g., `net sales`, `operating income`, `gross profit`, `diluted earnings per share`, `r&d`, `total assets`).
+| Test | Result |
+|---|---:|
+| Retrieval Regression | 11/11 |
+| Filing Hit@5 | 11/11 |
+| Metric Hit@5 | 11/11 |
+| Generation Verification | 3/3 |
+| Grounding Validation | 3/3 |
+| Year Guard | 3/3 |
 
-3. **Deterministic Out-of-Corpus Year Guard:**
-   Detects explicit fiscal year requests. If an entity filing is outside FY2020–FY2024, the request returns a deterministic response without consuming embedding, vector store, or LLM compute.
+Example validated financial values include:
 
-4. **Multi-Turn Context Tracking (`app.py`):**
-   Enables natural follow-up inquiries (e.g., *"What were Apple's net sales in fiscal year 2023?"* followed by *"How did that compare with the previous year?"*) by propagating active entity and fiscal-year context.
-
-5. **Responsive Research UI:**
-   Compact, high-contrast dark theme designed for financial analysts. Features immediate optimistic message updating, disabled input protection to eliminate duplicate queries, a subtle `Thinking · • • •` loading indicator, and cleanly rendered collapsible source disclosures (`<details>`).
+- **AAPL FY2023 Net Sales:** $383.3 billion
+- **ADM FY2024 Net Earnings:** $2,036 million
+- **NVDA FY2024 Revenue:** $60.9 billion
 
 ---
 
@@ -96,38 +133,39 @@ The system is rigorously benchmarked across 4 test suites:
 
 ```text
 RuleBeaconAI/
-├── app.py                      # Streamlit research interface (V8 baseline)
+├── app.py
 ├── data/
-│   └── raw/                    # 55 structured SEC 10-K filings (11 companies)
+│   └── raw/
 ├── scripts/
-│   ├── download_corpus.py      # SEC corpus downloader
+│   ├── download_corpus.py
 │   └── test_incremental_ingestion.py
 ├── src/
 │   ├── api/
-│   │   └── main.py             # FastAPI service (endpoints: /health, /ask)
+│   │   └── main.py
 │   ├── config/
 │   │   └── settings.py
 │   └── rag/
-│       ├── chunker.py          # Markdown section-aware chunker
-│       ├── embeddings.py       # Dense embedding constructor
-│       ├── generator.py        # Grounded Groq LLM interface
-│       ├── ingestion.py        # Incremental manifest & ingestion pipeline
-│       ├── loader.py           # Document loading utilities
-│       ├── manifest.py         # Chunk and document manifest management
-│       ├── parser.py           # 10-K structure parser
-│       ├── reranker.py         # Metric-boosted cross-encoder reranker
-│       ├── retriever.py        # Hybrid retrieval orchestration
-│       ├── schemas.py          # Data classes (RetrievalResult, SourceReference)
-│       ├── service.py          # Core RAG orchestration service
-│       └── vectorstore.py      # Qdrant RRF hybrid store adapter
+│       ├── chunker.py
+│       ├── embeddings.py
+│       ├── generator.py
+│       ├── ingestion.py
+│       ├── loader.py
+│       ├── manifest.py
+│       ├── parser.py
+│       ├── reranker.py
+│       ├── retriever.py
+│       ├── schemas.py
+│       ├── service.py
+│       └── vectorstore.py
 ├── tests/
-│   ├── retrieval_questions.py  # 11 standardized retrieval test cases
-│   ├── test_generation.py     # Value-accuracy generation test suite
-│   ├── test_grounding.py      # Source-attribution validation
-│   ├── test_retrieval.py      # 11-company retrieval regression suite
-│   └── test_year_guard.py     # Out-of-corpus guardrail tests
-├── .env.example                # Template configuration variables
-├── requirements.txt            # Python dependencies
+│   ├── retrieval_questions.py
+│   ├── test_calculations.py
+│   ├── test_generation.py
+│   ├── test_grounding.py
+│   ├── test_retrieval.py
+│   └── test_year_guard.py
+├── .env.example
+├── requirements.txt
 └── README.md
 ```
 
@@ -136,103 +174,114 @@ RuleBeaconAI/
 ## 6. Getting Started
 
 ### Prerequisites
+
 - Python 3.10+
-- Access to a running Qdrant cluster (Cloud or local) with the populated `sec_filings` collection
-- Groq API Key
+- Qdrant instance with the populated `sec_filings` collection
+- Groq API key
 
 ### Installation
 
-1. Clone or navigate to the repository directory:
-   ```bash
-   cd RuleBeaconAI
-   ```
+```bash
+git clone https://github.com/sdtech5/RuleBeaconAI.git
+cd RuleBeaconAI
 
-2. Create and activate a virtual environment:
-   ```bash
-   python -m venv .venv
-   # Windows:
-   .\.venv\Scripts\activate
-   # Linux/macOS:
-   source .venv/bin/activate
-   ```
+python -m venv .venv
+```
 
-3. Install required dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
+Windows:
 
-4. Configure environment variables:
-   Copy `.env.example` to `.env` and fill in your credentials:
-   ```bash
-   cp .env.example .env
-   ```
-   Ensure the following keys are populated in `.env`:
-   ```dotenv
-   GROQ_API_KEY=gsk_...
-   QDRANT_URL=https://...
-   QDRANT_API_KEY=...
-   ```
+```bash
+.\.venv\Scripts\activate
+```
+
+Linux/macOS:
+
+```bash
+source .venv/bin/activate
+```
+
+Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+Create `.env` from `.env.example` and configure:
+
+```dotenv
+GROQ_API_KEY=gsk_...
+QDRANT_URL=https://...
+QDRANT_API_KEY=...
+```
 
 ---
 
 ## 7. Running the Application
 
-### 1. Launch FastAPI Backend
+### FastAPI Backend
+
 ```bash
 uvicorn src.api.main:app --reload --port 8000
 ```
-- Health Check: `GET http://127.0.0.1:8000/health`
-- Ask Endpoint: `POST http://127.0.0.1:8000/ask`
 
-### 2. Launch Streamlit Frontend
+Health check:
+
+```text
+http://127.0.0.1:8000/health
+```
+
+### Streamlit Frontend
+
 ```bash
 streamlit run app.py
 ```
-Open your browser at `http://localhost:8501`.
 
----
-
-## 8. Running the Regression & Validation Suite
-
-Run each suite from the repository root:
-
-```bash
-# 1. Year Guardrail Suite (deterministic out-of-corpus checks)
-python -m tests.test_year_guard
-
-# 2. Retrieval Regression Suite (11 companies, Filing & Metric Hit@5)
-python -m tests.test_retrieval
-
-# 3. Generation Verification Suite (exact value checks)
-python -m tests.test_generation
-
-# 4. Grounding Verification Suite (source filing attribution)
-python -m tests.test_grounding
-```
-
----
-
-## 9. Payload Schema & Contract
-
-Qdrant documents store content and metadata according to the following canonical schema:
+Open:
 
 ```text
-payload = {
-    "text": "...",             # -> LangChain Document.page_content
-    "document_id": "...",      # Unique document hash
-    "chunk_id": "...",         # Deterministic chunk ID
-    "file_name": "10-K_2023.md",
-    "source": "data\\raw\\AAPL\\10-K_2023.md",
-    "section": "Item 8. Financial Statements...",
-    "item": "Item 8",
-    "part": "Part II",
-    "document_type": "10-K"
-}
+http://localhost:8501
 ```
 
 ---
 
-## 10. Future Production Hardening
-- **Two-phase Ingestion**: Upload replacement chunks $\to$ verify point count $\to$ delete old chunks.
-- **Streaming Response**: Migrate FastAPI and Streamlit to true server-sent events (SSE) token streaming.
-- **Corpus Expansion**: Ingest regulatory circulars (SEBI, RBI) and fund disclosures (SIDs, KIMs, SAIs) following the established deterministic chunking and metadata contracts.
+## 8. Running Tests
+
+From the project root:
+
+```bash
+python -m tests.test_year_guard
+python -m tests.test_retrieval
+python -m tests.test_generation
+python -m tests.test_grounding
+python -m tests.test_calculations
+```
+
+---
+
+## 9. Qdrant Document Metadata
+
+Each indexed chunk carries deterministic document and source metadata, including:
+
+```text
+document_id
+chunk_id
+file_name
+source
+section
+item
+part
+document_type
+```
+
+This metadata supports filtering, retrieval, source attribution, and reproducible document identification.
+
+---
+
+## 10. Future Improvements
+
+Potential future work includes:
+
+- Two-phase ingestion for safer corpus replacement
+- Streaming responses through FastAPI and Streamlit
+- Expansion beyond SEC 10-K filings
+- Additional regulatory and financial document types
