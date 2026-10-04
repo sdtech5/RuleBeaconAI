@@ -6,3 +6,6 @@ sentence-transformers
 chromadb
 langchain-groq
 python-dotenv
+fastapi
+uvicorn
+streamlit
