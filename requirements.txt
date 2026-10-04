@@ -9,3 +9,5 @@ python-dotenv
 fastapi
 uvicorn
 streamlit
+qdrant-client
+fastembed
