@@ -1,4 +1,5 @@
 import concurrent.futures
+import threading
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
@@ -47,46 +48,56 @@ class AnswerResponse(BaseModel):
 
 
 # --------------------------------------------------
-# Application Startup
+# Application Startup (lazy)
 # --------------------------------------------------
 
-
-print("Loading RuleBeaconAI...")
-
-
-print("Loading embedding model...")
-
-embeddings = create_embeddings()
+_rag_service = None
+_rag_service_lock = threading.Lock()
 
 
-print("Connecting to Qdrant...")
+def get_rag_service():
+    """Initialize the RAG components once and return the cached RAGService."""
 
-vector_store = load_qdrant_store(
-    embeddings
-)
+    global _rag_service
 
+    if _rag_service is None:
 
-print("Loading LLM...")
+        with _rag_service_lock:
 
-llm = create_llm()
+            if _rag_service is None:
 
+                print("Loading RuleBeaconAI...")
 
-print("Loading reranker...")
+                print("Loading embedding model...")
 
-reranker = DocumentReranker()
+                embeddings = create_embeddings()
 
+                print("Connecting to Qdrant...")
 
-rag_service = RAGService(
-    vector_store=vector_store,
-    llm=llm,
-    reranker=reranker,
-)
+                vector_store = load_qdrant_store(
+                    embeddings
+                )
 
+                print("Loading LLM...")
 
-print(
-    "RuleBeaconAI ready — "
-    "connected to existing Qdrant collection."
-)
+                llm = create_llm()
+
+                print("Loading reranker...")
+
+                reranker = DocumentReranker()
+
+                _rag_service = RAGService(
+                    vector_store=vector_store,
+                    llm=llm,
+                    reranker=reranker,
+                )
+
+                print(
+                    "RuleBeaconAI ready — "
+                    "connected to existing Qdrant collection."
+                )
+
+    return _rag_service
 
 
 # --------------------------------------------------
@@ -118,7 +129,7 @@ def ask_question(
     REQUEST_TIMEOUT = 80  # seconds — well within the 90s client timeout
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
-        future = executor.submit(rag_service.ask, request.question)
+        future = executor.submit(get_rag_service().ask, request.question)
         try:
             result = future.result(timeout=REQUEST_TIMEOUT)
         except concurrent.futures.TimeoutError:
