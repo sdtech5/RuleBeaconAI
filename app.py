@@ -13,7 +13,7 @@ import streamlit as st
 # Compact Streamlit UI for the existing FastAPI/RAG backend
 # ============================================================
 
-API_URL = "http://127.0.0.1:8000"
+API_URL = "https://rulebeaconai-git-830839785981.asia-south1.run.app"
 
 COMPANIES = [
     ("Apple", "AAPL"),
